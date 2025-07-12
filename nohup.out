@@ -1,7 +1,0 @@
-Tentative de connexion à MongoDB...
-✅ MongoDB connecté avec succès : 127.0.0.1
-[2025-07-09T13:25:13.685Z] INFO: Server running on port 5010
-Server running on port 5010
-[2025-07-09T13:25:18.651Z] INFO: Serveur SMTP prêt à prendre des messages
-[2025-07-09T13:31:59.608Z] INFO: Utilisateur connecté.
-[2025-07-09T13:32:03.979Z] INFO: Récupération de toutes les formations
