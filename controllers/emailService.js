@@ -141,12 +141,12 @@ const sendClientConfirmationEmail = async ({ name, email, subject }) => {
               <p>Nous vous confirmons avec plaisir la bonne réception de votre demande concernant : <strong style="${HTML_STYLES.CLIENT_P_BOLD_TEXT}">"${subject}"</strong>.</p>
               <p>Votre démarche est précieuse pour Zetoun Labs. Nous nous engageons à vous offrir une réponse de qualité dans les meilleurs délais.</p>
               <p>Un membre de notre équipe d'experts examinera votre requête avec la plus grande attention et vous contactera personnellement sous **48 heures ouvrables** afin de vous apporter une solution adaptée ou des conseils pertinents.</p>
-              <p style="${HTML_STYLES.CLIENT_P_MARGIN_TOP}">En attendant notre prise de contact, n'hésitez pas à explorer nos différentes <a href="${process.env.FRONTEND_URL}/formations" style="${HTML_STYLES.CLIENT_LINK_STYLE}">formations IT sur notre site web</a>. Vous y trouverez peut-être des opportunités pour renforcer vos compétences ou celles de votre équipe.</p>
+              <p style="${HTML_STYLES.CLIENT_P_MARGIN_TOP}">En attendant notre prise de contact, n'hésitez pas à explorer nos différentes <a href="${process.env.FRONTEND_URL}/add/calendar-form" style="${HTML_STYLES.CLIENT_LINK_STYLE}">formations IT sur notre site web</a>. Vous y trouverez peut-être des opportunités pour renforcer vos compétences ou celles de votre équipe.</p>
               <p style="${HTML_STYLES.CLIENT_P_MARGIN_TOP}">Nous vous remercions de votre confiance et sommes impatients d'échanger avec vous.</p>
               <p style="${HTML_STYLES.CLIENT_P_MARGIN_TOP} ${HTML_STYLES.CLIENT_P_SMALL_FONT}">
                   Cordialement,<br/>
                   L'équipe de Zetoun Labs<br/>
-                  <a href="${process.env.FRONTEND_URL}" style="color: #000; text-decoration: none;">www.zetounlabs.cd</a>
+                  <a href="${process.env.FRONTEND_URL}" style="color: #000; text-decoration: none;">www.zetounlabs.com</a>
               </p>
           </div>
           <div style="${HTML_STYLES.CLIENT_FOOTER_DIV}">
