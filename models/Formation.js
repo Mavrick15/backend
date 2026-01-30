@@ -58,12 +58,38 @@ const formationSchema = mongoose.Schema({
     required: [true, FORMATION_MESSAGES.REQUIRED('niveau de la formation')],
     trim: true
   },
-  image: {
-    type: String,
-    trim: true
-  }
+  image: {
+    type: String,
+    trim: true
+  },
+  category: {
+    type: String,
+    trim: true,
+    default: 'IT'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
+  views: {
+    type: Number,
+    default: 0,
+    min: 0
+  }
 }, {
-  timestamps: true
+  timestamps: true
 });
+
+// Index pour améliorer les performances
+formationSchema.index({ title: 'text', description: 'text' }); // Recherche textuelle
+formationSchema.index({ level: 1, isActive: 1 });
+formationSchema.index({ isFeatured: 1, isActive: 1 });
+formationSchema.index({ date: 1 });
+formationSchema.index({ createdAt: -1 });
+formationSchema.index({ views: -1 });
 
 module.exports = mongoose.model('Formation', formationSchema);

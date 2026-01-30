@@ -40,9 +40,30 @@ const userSchema = mongoose.Schema({
       message: USER_MESSAGES.INVALID_ROLE // Explicit message for enum validation
     },
     default: 'user'
-  }
+  },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  avatar: {
+    type: String,
+    trim: true,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  lastLogin: {
+    type: Date,
+  },
 }, {
   timestamps: true
 });
+
+// Index pour améliorer les performances
+// Note: email a déjà un index via unique: true, pas besoin de le redéfinir
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('User', userSchema);

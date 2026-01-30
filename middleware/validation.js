@@ -52,6 +52,16 @@ const validateTelecomOpinion = [
   checkValidationErrors,
 ];
 
+const validateContactRequest = [
+  body('name').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('nom')).trim(),
+  body('email')
+    .isEmail().withMessage(VALIDATION_MESSAGES.INVALID_EMAIL)
+    .trim().normalizeEmail(),
+  body('subject').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('sujet')).trim(),
+  body('message').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('message')).trim(),
+  checkValidationErrors,
+];
+
 const validateUserSignup = [
   body('name')
     .notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('nom'))
@@ -86,6 +96,7 @@ const validateEnrollment = [
 module.exports = {
   validateCreateFormation,
   validateTelecomOpinion,
+  validateContactRequest,
   validateUserSignup,
   validateUserLogin,
   validateEnrollment

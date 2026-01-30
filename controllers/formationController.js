@@ -64,7 +64,11 @@ const getFormationById = async (req, res, next) => {
       return res.status(400).json({ message: MESSAGES.INVALID_FORMATION_ID });
     }
 
-    const formation = await Formation.findById(req.params.id);
+    const formation = await Formation.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
 
     if (formation) {
       logger.info(LOG_MESSAGES.INFO_RETRIEVING_FORMATION_BY_ID, { formationId: req.params.id, formationTitle: formation.title });
