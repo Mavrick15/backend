@@ -1,92 +1,122 @@
-const nodemailer = require('nodemailer');
-const { logger } = require('../log/logger');
+const nodemailer = require("nodemailer");
+const { logger } = require("../log/logger");
 
 const EMAIL_MESSAGES = {
   SMTP_ERROR: "Erreur de connexion SMTP :",
   SMTP_READY: "Serveur SMTP prêt à prendre des messages",
-  ADMIN_NOTIFICATION_SUBJECT: (subject, name) => `[Nouvelle Demande Client] ${subject} - ${name}`,
-  ADMIN_NOTIFICATION_INFO: (email) => `Notification admin envoyée pour ${email}`,
-  ADMIN_NOTIFICATION_ERROR: (email) => `Erreur lors de l'envoi de l'e-mail de notification à l'admin pour ${email}:`,
-  CLIENT_CONFIRMATION_SUBJECT: 'Votre demande a été reçue - Zetoun Labs',
+  ADMIN_NOTIFICATION_SUBJECT: (subject, name) =>
+    `[Nouvelle Demande Client] ${subject} - ${name}`,
+  ADMIN_NOTIFICATION_INFO: (email) =>
+    `Notification admin envoyée pour ${email}`,
+  ADMIN_NOTIFICATION_ERROR: (email) =>
+    `Erreur lors de l'envoi de l'e-mail de notification à l'admin pour ${email}:`,
+  CLIENT_CONFIRMATION_SUBJECT: "Votre demande a été reçue - Zetoun Labs",
   CLIENT_CONFIRMATION_INFO: (email) => `Confirmation client envoyée à ${email}`,
-  CLIENT_CONFIRMATION_ERROR: (email) => `Erreur lors de l'envoi de l'e-mail de confirmation au client ${email}:`,
+  CLIENT_CONFIRMATION_ERROR: (email) =>
+    `Erreur lors de l'envoi de l'e-mail de confirmation au client ${email}:`,
 };
 
 /** Échappe les caractères HTML pour affichage sécurisé dans les e-mails */
 function escapeHtml(text) {
-  if (typeof text !== 'string') return '';
+  if (typeof text !== "string") return "";
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.zetounlabs.com';
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://www.zetounlabs.com";
 
 const HTML_STYLES = {
   /* Notification admin – style aligné Zetoun Labs */
-  MAIN_DIV: "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.65; color: #1a1a1a; max-width: 600px; margin: 0 auto; border: 1px solid #1a1a1a; border-radius: 8px; overflow: hidden; background-color: #fff;",
-  HEADER_DIV: "background-color: #f0f0f0; color: #1a1a1a; padding: 24px 20px; text-align: center; border-bottom: 1px solid #e0e0e0;",
-  H1_TITLE: "color: #1a1a1a; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0;",
+  MAIN_DIV:
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.65; color: #1a1a1a; max-width: 600px; margin: 0 auto; border: 1px solid #1a1a1a; border-radius: 8px; overflow: hidden; background-color: #fff;",
+  HEADER_DIV:
+    "background-color: #f0f0f0; color: #1a1a1a; padding: 24px 20px; text-align: center; border-bottom: 1px solid #e0e0e0;",
+  H1_TITLE:
+    "color: #1a1a1a; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0;",
   P_SUBTITLE: "color: #444444; font-size: 14px; margin: 6px 0 0;",
   CONTENT_DIV: "padding: 28px 24px;",
   P_BODY: "font-size: 15px; margin: 0 0 16px; color: #333;",
-  H3_DETAILS: "color: #1a1a1a; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; margin: 24px 0 14px; font-size: 17px; font-weight: 600;",
+  H3_DETAILS:
+    "color: #1a1a1a; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; margin: 24px 0 14px; font-size: 17px; font-weight: 600;",
   TABLE_STYLE: "width: 100%; border-collapse: collapse; font-size: 15px;",
-  TABLE_TD_BOLD: "padding: 10px 8px 10px 0; font-weight: 600; width: 32%; color: #1a1a1a;",
+  TABLE_TD_BOLD:
+    "padding: 10px 8px 10px 0; font-weight: 600; width: 32%; color: #1a1a1a;",
   TABLE_TD_NORMAL: "padding: 10px 0; color: #555;",
-  MESSAGE_DIV: "background-color: #f9f9f9; border-left: 4px solid #1a1a1a; padding: 18px; margin-top: 20px; border-radius: 0 6px 6px 0;",
-  MESSAGE_H3: "color: #1a1a1a; margin: 0 0 10px; font-size: 16px; font-weight: 600;",
-  MESSAGE_P: "white-space: pre-wrap; margin: 0; color: #555; font-size: 15px; line-height: 1.6;",
-  FOOTER_DIV: "background-color: #f5f5f5; color: #666; padding: 16px; text-align: center; font-size: 12px; border-top: 1px solid #eee;",
+  MESSAGE_DIV:
+    "background-color: #f9f9f9; border-left: 4px solid #1a1a1a; padding: 18px; margin-top: 20px; border-radius: 0 6px 6px 0;",
+  MESSAGE_H3:
+    "color: #1a1a1a; margin: 0 0 10px; font-size: 16px; font-weight: 600;",
+  MESSAGE_P:
+    "white-space: pre-wrap; margin: 0; color: #555; font-size: 15px; line-height: 1.6;",
+  FOOTER_DIV:
+    "background-color: #f5f5f5; color: #666; padding: 16px; text-align: center; font-size: 12px; border-top: 1px solid #eee;",
 
-  CLIENT_MAIN_DIV: "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.65; color: #1a1a1a; max-width: 600px; margin: 0 auto; border: 1px solid #000; border-radius: 8px; overflow: hidden; background-color: #fff;",
-  CLIENT_HEADER_DIV: "background-color: #f0f0f0; color: #1a1a1a; padding: 28px 25px; text-align: center; border-bottom: 1px solid #e0e0e0;",
-  CLIENT_H1_TITLE: "color: #1a1a1a; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0;",
+  CLIENT_MAIN_DIV:
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.65; color: #1a1a1a; max-width: 600px; margin: 0 auto; border: 1px solid #000; border-radius: 8px; overflow: hidden; background-color: #fff;",
+  CLIENT_HEADER_DIV:
+    "background-color: #f0f0f0; color: #1a1a1a; padding: 28px 25px; text-align: center; border-bottom: 1px solid #e0e0e0;",
+  CLIENT_H1_TITLE:
+    "color: #1a1a1a; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0;",
   CLIENT_P_SUBTITLE: "color: #444444; margin: 8px 0 0; font-size: 15px;",
   CLIENT_CONTENT_DIV: "padding: 32px 28px;",
   CLIENT_P_REGULAR: "font-size: 16px; margin: 0 0 14px; color: #333;",
   CLIENT_P_BOLD_TEXT: "color: #000; font-weight: 600;",
   CLIENT_P_MARGIN_TOP: "margin-top: 22px;",
   CLIENT_P_SMALL_FONT: "font-size: 15px; color: #555;",
-  CLIENT_LINK_STYLE: "color: #1a1a1a; text-decoration: underline; font-weight: 600;",
-  CLIENT_FOOTER_DIV: "background-color: #f5f5f5; color: #666; padding: 18px; text-align: center; font-size: 12px; border-top: 1px solid #eee;",
-  CLIENT_BOX: "background-color: #f9f9f9; border-left: 4px solid #1a1a1a; padding: 16px 18px; margin: 20px 0; border-radius: 0 6px 6px 0;",
-  CLIENT_CTA_BTN: "display: inline-block; background-color: #1a1a1a; color: #fff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; margin-top: 8px;",
+  CLIENT_LINK_STYLE:
+    "color: #1a1a1a; text-decoration: underline; font-weight: 600;",
+  CLIENT_FOOTER_DIV:
+    "background-color: #f5f5f5; color: #666; padding: 18px; text-align: center; font-size: 12px; border-top: 1px solid #eee;",
+  CLIENT_BOX:
+    "background-color: #f9f9f9; border-left: 4px solid #1a1a1a; padding: 16px 18px; margin: 20px 0; border-radius: 0 6px 6px 0;",
+  CLIENT_CTA_BTN:
+    "display: inline-block; background-color: #1a1a1a; color: #fff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; margin-top: 8px;",
 };
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587', 10),
-  secure: process.env.EMAIL_SECURE === 'true',
+  port: parseInt(process.env.EMAIL_PORT || "587", 10),
+  secure: process.env.EMAIL_SECURE === "true",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   tls: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+  },
 });
 
-transporter.verify(function(error, success) {
+transporter.verify(function (error, success) {
   if (error) {
-    logger.error(EMAIL_MESSAGES.SMTP_ERROR, error);
+    logger.error(EMAIL_MESSAGES.SMTP_ERROR, {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+    });
   } else {
     logger.info(EMAIL_MESSAGES.SMTP_READY);
   }
 });
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const sendEmailWithRetry = async (mailOptions, maxRetries = 3, retryDelayMs = 2000) => {
+const sendEmailWithRetry = async (
+  mailOptions,
+  maxRetries = 3,
+  retryDelayMs = 2000,
+) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await transporter.sendMail(mailOptions);
       return true;
     } catch (error) {
-      logger.warn(`Tentative ${attempt}/${maxRetries} d'envoi d'e-mail échouée. Cible : ${mailOptions.to}. Erreur : ${error.message}`);
+      logger.warn(
+        `Tentative ${attempt}/${maxRetries} d'envoi d'e-mail échouée. Cible : ${mailOptions.to}. Erreur : ${error.message}`,
+      );
       if (attempt < maxRetries) {
         await sleep(retryDelayMs * attempt);
       } else {
@@ -97,11 +127,16 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 3, retryDelayMs = 20
 };
 
 /** E-mail de notification envoyé à l'admin lorsqu'un client soumet le formulaire de contact */
-const sendAdminNotificationEmail = async ({ name, email, subject, message }) => {
+const sendAdminNotificationEmail = async ({
+  name,
+  email,
+  subject,
+  message,
+}) => {
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
   const safeSubject = escapeHtml(subject);
-  const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
 
   const adminMailOptions = {
     from: process.env.EMAIL_FROM,
@@ -146,7 +181,10 @@ const sendAdminNotificationEmail = async ({ name, email, subject, message }) => 
     await sendEmailWithRetry(adminMailOptions);
     logger.info(EMAIL_MESSAGES.ADMIN_NOTIFICATION_INFO(email));
   } catch (error) {
-    logger.error(EMAIL_MESSAGES.ADMIN_NOTIFICATION_ERROR(email), { message: error.message, stack: error.stack });
+    logger.error(EMAIL_MESSAGES.ADMIN_NOTIFICATION_ERROR(email), {
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };
 
@@ -185,7 +223,7 @@ const sendClientConfirmationEmail = async ({ name, email, subject }) => {
               <p style="${HTML_STYLES.CLIENT_P_MARGIN_TOP} ${HTML_STYLES.CLIENT_P_SMALL_FONT}">
                   Cordialement,<br/>
                   <strong>L'équipe Zetoun Labs</strong><br/>
-                  <a href="${FRONTEND_URL}" style="color: #1a1a1a; text-decoration: none;">${FRONTEND_URL.replace(/^https?:\/\//, '')}</a>
+                  <a href="${FRONTEND_URL}" style="color: #1a1a1a; text-decoration: none;">${FRONTEND_URL.replace(/^https?:\/\//, "")}</a>
               </p>
           </div>
           <div style="${HTML_STYLES.CLIENT_FOOTER_DIV}">
@@ -199,17 +237,27 @@ const sendClientConfirmationEmail = async ({ name, email, subject }) => {
     await sendEmailWithRetry(clientMailOptions);
     logger.info(EMAIL_MESSAGES.CLIENT_CONFIRMATION_INFO(email));
   } catch (error) {
-    logger.error(EMAIL_MESSAGES.CLIENT_CONFIRMATION_ERROR(email), { message: error.message, stack: error.stack });
+    logger.error(EMAIL_MESSAGES.CLIENT_CONFIRMATION_ERROR(email), {
+      message: error.message,
+      stack: error.stack,
+    });
   }
 };
 
-const sendInvoiceConfirmationEmail = async ({ invoiceNumber, clientName, clientEmail, items, total }) => {
+const sendInvoiceConfirmationEmail = async ({
+  invoiceNumber,
+  clientName,
+  clientEmail,
+  items,
+  total,
+}) => {
   const safeClientName = escapeHtml(clientName);
-  const itemsList = items.map((item, index) => {
-    const title = escapeHtml(item.title || '');
-    const qty = Number(item.quantity) || 1;
-    const price = Number(item.price) || 0;
-    return `
+  const itemsList = items
+    .map((item, index) => {
+      const title = escapeHtml(item.title || "");
+      const qty = Number(item.quantity) || 1;
+      const price = Number(item.price) || 0;
+      return `
     <tr>
       <td style="padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 14px;">${index + 1}</td>
       <td style="padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 14px;">${title}</td>
@@ -218,7 +266,8 @@ const sendInvoiceConfirmationEmail = async ({ invoiceNumber, clientName, clientE
       <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; font-size: 14px;">${(price * qty).toFixed(2)} $</td>
     </tr>
   `;
-  }).join('');
+    })
+    .join("");
 
   const clientMailOptions = {
     from: process.env.EMAIL_FROM,
@@ -269,7 +318,7 @@ const sendInvoiceConfirmationEmail = async ({ invoiceNumber, clientName, clientE
               <p style="${HTML_STYLES.CLIENT_P_MARGIN_TOP} ${HTML_STYLES.CLIENT_P_SMALL_FONT}">
                   Cordialement,<br/>
                   <strong>L'équipe Zetoun Labs</strong><br/>
-                  <a href="${FRONTEND_URL}" style="color: #1a1a1a; text-decoration: none;">${FRONTEND_URL.replace(/^https?:\/\//, '')}</a>
+                  <a href="${FRONTEND_URL}" style="color: #1a1a1a; text-decoration: none;">${FRONTEND_URL.replace(/^https?:\/\//, "")}</a>
               </p>
           </div>
           <div style="${HTML_STYLES.CLIENT_FOOTER_DIV}">
@@ -281,12 +330,17 @@ const sendInvoiceConfirmationEmail = async ({ invoiceNumber, clientName, clientE
 
   try {
     await sendEmailWithRetry(clientMailOptions);
-    logger.info(`Email de confirmation de facture envoyé à ${clientEmail}`, { invoiceNumber });
-  } catch (error) {
-    logger.error(`Erreur lors de l'envoi de l'email de confirmation de facture à ${clientEmail}:`, { 
-      message: error.message, 
-      stack: error.stack 
+    logger.info(`Email de confirmation de facture envoyé à ${clientEmail}`, {
+      invoiceNumber,
     });
+  } catch (error) {
+    logger.error(
+      `Erreur lors de l'envoi de l'email de confirmation de facture à ${clientEmail}:`,
+      {
+        message: error.message,
+        stack: error.stack,
+      },
+    );
   }
 };
 
