@@ -25,9 +25,9 @@ const LOG_MESSAGES = {
 const createTestimonial = async (req, res, next) => {
   try {
     const testimonial = await Testimonial.create(req.body);
-    
+
     logger.info(LOG_MESSAGES.INFO_TESTIMONIAL_CREATED(testimonial._id));
-    
+
     res.status(201).json({
       success: true,
       message: MESSAGES.TESTIMONIAL_CREATED,

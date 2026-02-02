@@ -1,34 +1,38 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
+require("dotenv").config();
+const mongoose = require("mongoose");
+const { logger } = require("../log/logger");
 
 const DB_MESSAGES = {
-  MONGO_URI_UNDEFINED_ERROR: '❌ ERREUR : La variable MONGODB_URI n\'est pas définie dans votre fichier .env !',
-  MONGO_URI_HINT: 'Veuillez vous assurer que votre fichier .env existe et contient MONGODB_URI=votre_chaine_de_connexion',
-  ATTEMPTING_CONNECTION: 'Tentative de connexion à MongoDB...',
-  CONNECTION_SUCCESS: (host) => `✅ MongoDB connecté avec succès : ${host}`,
-  CONNECTION_ERROR: (message) => `❌ Erreur de connexion MongoDB : ${message}`,
+  MONGO_URI_UNDEFINED_ERROR:
+    "La variable MONGODB_URI n'est pas définie dans votre fichier .env",
+  MONGO_URI_HINT:
+    "Veuillez vous assurer que votre fichier .env existe et contient MONGODB_URI=votre_chaine_de_connexion",
+  ATTEMPTING_CONNECTION: "Tentative de connexion à MongoDB...",
+  CONNECTION_SUCCESS: (host) => `MongoDB connecté avec succès : ${host}`,
+  CONNECTION_ERROR: (message) => `Erreur de connexion MongoDB : ${message}`,
 };
 
 (function checkMongoURI() {
   if (!process.env.MONGODB_URI) {
-    console.error(DB_MESSAGES.MONGO_URI_UNDEFINED_ERROR);
-    console.error(DB_MESSAGES.MONGO_URI_HINT);
+    logger.error(DB_MESSAGES.MONGO_URI_UNDEFINED_ERROR);
+    logger.error(DB_MESSAGES.MONGO_URI_HINT);
     process.exit(1);
   }
 })();
 
-console.log(DB_MESSAGES.ATTEMPTING_CONNECTION);
+const SERVER_SELECTION_TIMEOUT_MS = 5000;
 
 const connectDB = async () => {
   try {
+    logger.info(DB_MESSAGES.ATTEMPTING_CONNECTION);
     const options = {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
     };
 
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
-    console.log(DB_MESSAGES.CONNECTION_SUCCESS(conn.connection.host));
+    logger.info(DB_MESSAGES.CONNECTION_SUCCESS(conn.connection.host));
   } catch (error) {
-    console.error(DB_MESSAGES.CONNECTION_ERROR(error.message));
+    logger.error(DB_MESSAGES.CONNECTION_ERROR(error.message));
     process.exit(1);
   }
 };

@@ -1,12 +1,15 @@
-const fs = require('node:fs').promises;
-const path = require('node:path');
+const fs = require("node:fs").promises;
+const path = require("node:path");
 
 const LOG_CONSTANTS = {
-  LOGS_DIR_NAME: 'logs',
-  LOG_FILE_NAME: 'app.log',
-  ERROR_CRITICAL_DIR_CREATE: (message) => `[${new Date().toISOString()}] ERREUR CRITIQUE: Impossible de créer le répertoire de logs: ${message}`,
-  ERROR_WRITE_FILE: (timestamp, message) => `[${timestamp}] ERREUR: Impossible d'écrire dans le fichier de log: ${message}`,
-  CONSOLE_LOG_FORMAT: (timestamp, level, message) => `[${timestamp}] ${level.toUpperCase()}: ${message}`,
+  LOGS_DIR_NAME: "logs",
+  LOG_FILE_NAME: "app.log",
+  ERROR_CRITICAL_DIR_CREATE: (message) =>
+    `[${new Date().toISOString()}] ERREUR CRITIQUE: Impossible de créer le répertoire de logs: ${message}`,
+  ERROR_WRITE_FILE: (timestamp, message) =>
+    `[${timestamp}] ERREUR: Impossible d'écrire dans le fichier de log: ${message}`,
+  CONSOLE_LOG_FORMAT: (timestamp, level, message) =>
+    `[${timestamp}] ${level.toUpperCase()}: ${message}`,
 };
 
 class Logger {
@@ -20,7 +23,9 @@ class Logger {
     try {
       await fs.mkdir(this.logsDir, { recursive: true });
     } catch (error) {
-      console.error(LOG_CONSTANTS.ERROR_CRITICAL_DIR_CREATE(error.message));
+      if (process.env.NODE_ENV !== "production") {
+        console.error(LOG_CONSTANTS.ERROR_CRITICAL_DIR_CREATE(error.message));
+      }
     }
   }
 
@@ -30,28 +35,32 @@ class Logger {
       timestamp,
       level,
       message,
-      ...(meta && { meta })
+      ...(meta && { meta }),
     };
 
-    console.log(LOG_CONSTANTS.CONSOLE_LOG_FORMAT(timestamp, level, message));
+    if (process.env.NODE_ENV !== "production") {
+      console.log(LOG_CONSTANTS.CONSOLE_LOG_FORMAT(timestamp, level, message));
+    }
 
     try {
-      await fs.appendFile(this.logFile, JSON.stringify(logEntry) + '\n');
+      await fs.appendFile(this.logFile, JSON.stringify(logEntry) + "\n");
     } catch (error) {
-      console.error(LOG_CONSTANTS.ERROR_WRITE_FILE(timestamp, error.message));
+      if (process.env.NODE_ENV !== "production") {
+        console.error(LOG_CONSTANTS.ERROR_WRITE_FILE(timestamp, error.message));
+      }
     }
   }
 
   info(message, meta) {
-    this.writeLog('info', message, meta);
+    this.writeLog("info", message, meta);
   }
 
   error(message, meta) {
-    this.writeLog('error', message, meta);
+    this.writeLog("error", message, meta);
   }
 
   warn(message, meta) {
-    this.writeLog('warn', message, meta);
+    this.writeLog("warn", message, meta);
   }
 }
 

@@ -1,3 +1,5 @@
+const ECMA_VERSION = 2022;
+
 module.exports = {
   env: {
     node: true,
@@ -5,7 +7,7 @@ module.exports = {
   },
   extends: ['eslint:recommended'],
   parserOptions: {
-    ecmaVersion: 2022,
+    ecmaVersion: ECMA_VERSION,
     sourceType: 'module',
   },
   rules: {

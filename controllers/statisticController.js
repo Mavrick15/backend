@@ -24,9 +24,9 @@ const LOG_MESSAGES = {
 const createStatistic = async (req, res, next) => {
   try {
     const statistic = await Statistic.create(req.body);
-    
+
     logger.info(LOG_MESSAGES.INFO_STATISTIC_CREATED(statistic._id));
-    
+
     res.status(201).json({
       success: true,
       message: MESSAGES.STATISTIC_CREATED,

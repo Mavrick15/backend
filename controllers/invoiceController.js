@@ -36,50 +36,99 @@ const LOG_MESSAGES = {
   ERROR_INVOICE_FETCH: "Erreur lors de la récupération de la facture:",
 };
 
+const HTTP_CREATED = 201;
+
+/** Créer les inscriptions (enrollments) pour les items de la facture */
+async function createEnrollmentsForInvoice(invoiceItems, userId, user) {
+  const enrollments = [];
+  for (const item of invoiceItems) {
+    try {
+      const existingEnrollment = await Enrollment.findOne({
+        user: userId,
+        formation: item.formationId,
+      });
+      if (existingEnrollment) continue;
+
+      const formation = await Formation.findById(item.formationId);
+      if (!formation || formation.seats <= 0) continue;
+
+      const seatsBeforeDecrement = formation.seats;
+      const updatedFormation = await Formation.findByIdAndUpdate(
+        item.formationId,
+        { $inc: { seats: -1 } },
+        { new: true },
+      );
+      if (!updatedFormation) continue;
+
+      const enrollment = await Enrollment.create({
+        user: userId,
+        userName: user.name,
+        userEmail: user.email,
+        formation: item.formationId,
+        formationTitle: formation.title,
+        formationDate: formation.date,
+        formationLocation: formation.location,
+        formationDuration: formation.duration,
+        formationInstructor: formation.instructor,
+        formationPrice: formation.price,
+        formationSeats: seatsBeforeDecrement,
+        formationLevel: formation.level,
+      });
+      enrollments.push(enrollment);
+    } catch (error) {
+      logger.error(
+        `Erreur lors de la création de l'inscription pour ${item.formationId}:`,
+        error,
+      );
+    }
+  }
+  return enrollments;
+}
+
+/** Planifier l'envoi de l'email de confirmation en arrière-plan */
+function scheduleInvoiceConfirmationEmail(invoice) {
+  setImmediate(() => {
+    sendInvoiceConfirmationEmail({
+      invoiceNumber: invoice.invoiceNumber,
+      clientName: invoice.clientInfo.name,
+      clientEmail: invoice.clientInfo.email,
+      items: invoice.items,
+      total: invoice.total,
+    }).catch((error) => {
+      logger.error(
+        "Erreur lors de l'envoi de l'email de confirmation de facture:",
+        error,
+      );
+    });
+  });
+}
+
 /**
  * Créer une nouvelle facture
  */
 const createInvoice = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
-
     if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: MESSAGES.TOKEN_MISSING });
+      return res.status(401).json({ success: false, message: MESSAGES.TOKEN_MISSING });
     }
 
     let decodedToken;
     try {
       decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      return res
-        .status(401)
-        .json({ success: false, message: MESSAGES.TOKEN_INVALID });
+    } catch {
+      return res.status(401).json({ success: false, message: MESSAGES.TOKEN_INVALID });
     }
 
     const userId = decodedToken.id;
     const user = await User.findById(userId);
-
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: MESSAGES.USER_NOT_FOUND });
+      return res.status(404).json({ success: false, message: MESSAGES.USER_NOT_FOUND });
     }
 
-    const {
-      items,
-      clientInfo,
-      paymentMethod,
-      notes,
-      tax = 0,
-      discount = 0,
-    } = req.body;
-
+    const { items, clientInfo, paymentMethod, notes, tax = 0, discount = 0 } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: MESSAGES.INVALID_ITEMS });
+      return res.status(400).json({ success: false, message: MESSAGES.INVALID_ITEMS });
     }
 
     logger.info(LOG_MESSAGES.INFO_INVOICE_CREATION_START(user.name), {
@@ -87,15 +136,11 @@ const createInvoice = async (req, res, next) => {
       itemsCount: items.length,
     });
 
-    // Vérifier que toutes les formations existent
     const formationIds = items.map((item) => item.formationId || item._id);
     const formations = await Formation.find({ _id: { $in: formationIds } });
-
     if (formations.length !== formationIds.length) {
       const foundIds = formations.map((f) => f._id.toString());
-      const missingIds = formationIds.filter(
-        (id) => !foundIds.includes(id.toString()),
-      );
+      const missingIds = formationIds.filter((id) => !foundIds.includes(id.toString()));
       logger.warn(LOG_MESSAGES.WARN_FORMATION_NOT_FOUND(missingIds.join(", ")));
       return res.status(404).json({
         success: false,
@@ -103,7 +148,6 @@ const createInvoice = async (req, res, next) => {
       });
     }
 
-    // Préparer les items de la facture avec les données complètes
     const invoiceItems = items.map((item) => {
       const formation = formations.find(
         (f) => f._id.toString() === (item.formationId || item._id).toString(),
@@ -111,103 +155,47 @@ const createInvoice = async (req, res, next) => {
       return {
         formationId: formation._id,
         title: item.title || formation.title,
-        price:
-          typeof item.price === "number"
-            ? item.price
-            : parseFloat(item.price) || formation.price,
+        price: typeof item.price === "number"
+          ? item.price
+          : parseFloat(item.price) || formation.price,
         quantity: item.quantity || 1,
       };
     });
 
-    // Générer le numéro de facture
     let invoiceNumber;
     let isUnique = false;
     while (!isUnique) {
       invoiceNumber = Invoice.generateInvoiceNumber();
       const existing = await Invoice.findOne({ invoiceNumber });
-      if (!existing) {
-        isUnique = true;
-      }
+      if (!existing) isUnique = true;
     }
 
-    // Créer la facture
+    const clientInfoNormalized = {
+      name: clientInfo.name || user.name,
+      email: clientInfo.email || user.email,
+      phone: clientInfo.phone || "",
+      address: {
+        street: clientInfo.address?.street || clientInfo.address || "",
+        city: clientInfo.address?.city || clientInfo.city || "",
+        postalCode: clientInfo.address?.postalCode || clientInfo.postalCode || "",
+        country: clientInfo.address?.country || clientInfo.country || "",
+      },
+    };
+
     const invoice = new Invoice({
       invoiceNumber,
       user: userId,
       items: invoiceItems,
-      clientInfo: {
-        name: clientInfo.name || user.name,
-        email: clientInfo.email || user.email,
-        phone: clientInfo.phone || "",
-        address: {
-          street: clientInfo.address?.street || clientInfo.address || "",
-          city: clientInfo.address?.city || clientInfo.city || "",
-          postalCode:
-            clientInfo.address?.postalCode || clientInfo.postalCode || "",
-          country: clientInfo.address?.country || clientInfo.country || "",
-        },
-      },
+      clientInfo: clientInfoNormalized,
       paymentMethod: paymentMethod || "other",
       tax: tax || 0,
       discount: discount || 0,
       notes: notes || "",
     });
-
-    // Calculer le total
     invoice.calculateTotal();
     await invoice.save();
 
-    // Créer les inscriptions pour chaque formation
-    const enrollments = [];
-    for (const item of invoiceItems) {
-      try {
-        // Vérifier si l'utilisateur n'est pas déjà inscrit
-        const existingEnrollment = await Enrollment.findOne({
-          user: userId,
-          formation: item.formationId,
-        });
-
-        if (!existingEnrollment) {
-          const formation = await Formation.findById(item.formationId);
-          if (formation && formation.seats > 0) {
-            // Sauvegarder le nombre de places avant décrémentation
-            const seatsBeforeDecrement = formation.seats;
-
-            // Décrémenter les places disponibles
-            const updatedFormation = await Formation.findByIdAndUpdate(
-              item.formationId,
-              { $inc: { seats: -1 } },
-              { new: true },
-            );
-
-            if (updatedFormation) {
-              // Créer l'inscription avec le nombre de places avant décrémentation
-              const enrollment = await Enrollment.create({
-                user: userId,
-                userName: user.name,
-                userEmail: user.email,
-                formation: item.formationId,
-                formationTitle: formation.title,
-                formationDate: formation.date,
-                formationLocation: formation.location,
-                formationDuration: formation.duration,
-                formationInstructor: formation.instructor,
-                formationPrice: formation.price,
-                formationSeats: seatsBeforeDecrement,
-                formationLevel: formation.level,
-              });
-              enrollments.push(enrollment);
-            }
-          }
-        }
-      } catch (error) {
-        logger.error(
-          `Erreur lors de la création de l'inscription pour ${item.formationId}:`,
-          error,
-        );
-        // Continuer avec les autres formations même si une échoue
-      }
-    }
+    const enrollments = await createEnrollmentsForInvoice(invoiceItems, userId, user);
 
     logger.info(LOG_MESSAGES.INFO_INVOICE_CREATED(invoiceNumber, user.name), {
       invoiceId: invoice._id,
@@ -216,24 +204,9 @@ const createInvoice = async (req, res, next) => {
       enrollmentsCount: enrollments.length,
     });
 
-    // Envoi de l'email de confirmation en arrière-plan (ne bloque pas la réponse)
-    setImmediate(() => {
-      sendInvoiceConfirmationEmail({
-        invoiceNumber: invoice.invoiceNumber,
-        clientName: invoice.clientInfo.name,
-        clientEmail: invoice.clientInfo.email,
-        items: invoice.items,
-        total: invoice.total,
-      }).catch((error) => {
-        logger.error(
-          "Erreur lors de l'envoi de l'email de confirmation de facture:",
-          error,
-        );
-      });
-    });
+    scheduleInvoiceConfirmationEmail(invoice);
 
-    // Réponse immédiate au client : la facture est créée
-    res.status(201).json({
+    res.status(HTTP_CREATED).json({
       success: true,
       message: MESSAGES.INVOICE_CREATED,
       invoice: {

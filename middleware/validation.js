@@ -22,7 +22,7 @@ const checkValidationErrors = (req, res, next) => {
   next();
 };
 
-const validateCreateFormation = [
+const createFormationValidationRules = [
   body('title').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('titre')).trim(),
   body('description').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('description')).trim(),
   body('date')
@@ -42,7 +42,7 @@ const validateCreateFormation = [
   checkValidationErrors,
 ];
 
-const validateTelecomOpinion = [
+const telecomOpinionValidationRules = [
   body('name').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('nom')).trim(),
   body('email')
     .isEmail().withMessage(VALIDATION_MESSAGES.INVALID_EMAIL)
@@ -52,7 +52,7 @@ const validateTelecomOpinion = [
   checkValidationErrors,
 ];
 
-const validateContactRequest = [
+const contactRequestValidationRules = [
   body('name').notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('nom')).trim(),
   body('email')
     .isEmail().withMessage(VALIDATION_MESSAGES.INVALID_EMAIL)
@@ -62,7 +62,7 @@ const validateContactRequest = [
   checkValidationErrors,
 ];
 
-const validateUserSignup = [
+const userSignupValidationRules = [
   body('name')
     .notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('nom'))
     .isLength({ min: 2 }).withMessage(VALIDATION_MESSAGES.MIN_LENGTH('nom', 2))
@@ -77,7 +77,7 @@ const validateUserSignup = [
   checkValidationErrors,
 ];
 
-const validateUserLogin = [
+const userLoginValidationRules = [
   body('email')
     .isEmail().withMessage(VALIDATION_MESSAGES.INVALID_EMAIL)
     .notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('email'))
@@ -86,18 +86,19 @@ const validateUserLogin = [
   checkValidationErrors,
 ];
 
-const validateEnrollment = [
+const enrollmentValidationRules = [
   body('formationId')
     .notEmpty().withMessage(VALIDATION_MESSAGES.REQUIRED('ID de la formation'))
-    .custom(value => mongoose.Types.ObjectId.isValid(value)).withMessage(VALIDATION_MESSAGES.INVALID_FORMATION_ID),
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage(VALIDATION_MESSAGES.INVALID_FORMATION_ID),
   checkValidationErrors,
 ];
 
 module.exports = {
-  validateCreateFormation,
-  validateTelecomOpinion,
-  validateContactRequest,
-  validateUserSignup,
-  validateUserLogin,
-  validateEnrollment
+  validateCreateFormation: createFormationValidationRules,
+  validateTelecomOpinion: telecomOpinionValidationRules,
+  validateContactRequest: contactRequestValidationRules,
+  validateUserSignup: userSignupValidationRules,
+  validateUserLogin: userLoginValidationRules,
+  validateEnrollment: enrollmentValidationRules,
 };

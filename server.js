@@ -51,9 +51,11 @@ const startServer = async () => {
     app.use(express.json({ limit: "10mb" }));
     app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+    const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+    const RATE_LIMIT_MAX_REQUESTS = 100;
     const apiLimiter = rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 100,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      max: RATE_LIMIT_MAX_REQUESTS,
       message:
         "Trop de requêtes depuis cette IP, veuillez réessayer après 15 minutes.",
     });
@@ -115,7 +117,6 @@ const startServer = async () => {
     const PORT = process.env.PORT || 5010;
     const server = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
-      console.log(`Server running on port ${PORT}`);
     });
 
     process.on("SIGTERM", () => {
@@ -138,7 +139,6 @@ const startServer = async () => {
       message: error.message,
       stack: error.stack,
     });
-    console.error("Détails de l'erreur critique:", error);
     process.exit(1);
   }
 };

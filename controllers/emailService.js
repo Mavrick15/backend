@@ -28,6 +28,9 @@ function escapeHtml(text) {
 }
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://www.zetounlabs.com";
+const DEFAULT_EMAIL_PORT = 587;
+const SEND_EMAIL_MAX_RETRIES = 3;
+const SEND_EMAIL_RETRY_DELAY_MS = 2000;
 
 const HTML_STYLES = {
   /* Notification admin – style aligné Zetoun Labs */
@@ -79,7 +82,7 @@ const HTML_STYLES = {
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || "587", 10),
+  port: parseInt(process.env.EMAIL_PORT || String(DEFAULT_EMAIL_PORT), 10),
   secure: process.env.EMAIL_SECURE === "true",
   auth: {
     user: process.env.EMAIL_USER,
@@ -106,8 +109,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const sendEmailWithRetry = async (
   mailOptions,
-  maxRetries = 3,
-  retryDelayMs = 2000,
+  maxRetries = SEND_EMAIL_MAX_RETRIES,
+  retryDelayMs = SEND_EMAIL_RETRY_DELAY_MS,
 ) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

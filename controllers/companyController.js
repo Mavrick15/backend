@@ -19,9 +19,9 @@ const LOG_MESSAGES = {
 const getCompany = async (req, res, next) => {
   try {
     const company = await Company.getCompany();
-    
+
     logger.info(LOG_MESSAGES.INFO_COMPANY_FETCHED);
-    
+
     res.status(200).json({
       success: true,
       message: MESSAGES.COMPANY_FETCHED,
@@ -42,17 +42,17 @@ const updateCompany = async (req, res, next) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: MESSAGES.UNAUTHORIZED });
     }
-    
+
     let company = await Company.findOne();
-    
+
     if (!company) {
       company = await Company.create(req.body);
     } else {
       company = await Company.findByIdAndUpdate(company._id, req.body, { new: true, runValidators: true });
     }
-    
+
     logger.info(LOG_MESSAGES.INFO_COMPANY_UPDATED);
-    
+
     res.status(200).json({
       success: true,
       message: MESSAGES.COMPANY_UPDATED,

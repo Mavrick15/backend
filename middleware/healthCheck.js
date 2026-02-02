@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const { logger } = require('../log/logger');
 
+const HTTP_OK = 200;
+const HTTP_SERVICE_UNAVAILABLE = 503;
+
 /**
  * Health check endpoint
  * Vérifie l'état de la base de données et du serveur
@@ -39,7 +42,7 @@ const healthCheck = async (req, res) => {
     };
 
     logger.info('Health check: All systems operational', healthStatus);
-    res.status(200).json(healthStatus);
+    res.status(HTTP_OK).json(healthStatus);
   } catch (error) {
     healthStatus.status = 'degraded';
     healthStatus.checks.database = {
@@ -48,7 +51,7 @@ const healthCheck = async (req, res) => {
     };
 
     logger.error('Health check: Database connection failed', { error: error.message });
-    res.status(503).json(healthStatus);
+    res.status(HTTP_SERVICE_UNAVAILABLE).json(healthStatus);
   }
 };
 
@@ -59,13 +62,13 @@ const readinessCheck = async (req, res) => {
   try {
     // Vérifier MongoDB
     await mongoose.connection.db.admin().ping();
-    
-    res.status(200).json({
+
+    res.status(HTTP_OK).json({
       status: 'ready',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    res.status(503).json({
+    res.status(HTTP_SERVICE_UNAVAILABLE).json({
       status: 'not ready',
       error: error.message,
       timestamp: new Date().toISOString(),
@@ -77,7 +80,7 @@ const readinessCheck = async (req, res) => {
  * Liveness check - vérifie si l'application est en vie
  */
 const livenessCheck = (req, res) => {
-  res.status(200).json({
+  res.status(HTTP_OK).json({
     status: 'alive',
     timestamp: new Date().toISOString(),
   });
