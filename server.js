@@ -86,6 +86,7 @@ const startServer = async () => {
     app.use("/api/contact-requests", require("./routes/contactRequestRoutes"));
     app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
     app.use("/api/invoices", require("./routes/invoiceRoutes"));
+    app.use("/api/payments", require("./routes/paymentRoutes"));
     app.use("/api/testimonials", require("./routes/testimonialRoutes"));
     app.use("/api/statistics", require("./routes/statisticRoutes"));
     app.use("/api/company", require("./routes/companyRoutes"));
