@@ -3,7 +3,7 @@ const { logger } = require('../log/logger');
 const { sendAdminNotificationEmail, sendClientConfirmationEmail } = require('./emailService');
 
 const MESSAGES = {
-  CONTACT_SAVED_SUCCESS: 'Votre message a été enregistré avec succès. Nous vous recontacterons rapidement.',
+  CONTACT_SAVED_SUCCESS: 'Merci pour votre confiance ! Votre demande a été enregistrée avec succès. Un expert Zetoun Labs vous contactera sous 24h pour une consultation personnalisée.',
 };
 
 const LOG_MESSAGES = {

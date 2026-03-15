@@ -3,12 +3,12 @@ const { logger } = require('../log/logger');
 const mongoose = require('mongoose');
 
 const MESSAGES = {
-  TESTIMONIAL_CREATED: 'Témoignage créé avec succès',
-  TESTIMONIAL_UPDATED: 'Témoignage mis à jour avec succès',
-  TESTIMONIAL_DELETED: 'Témoignage supprimé avec succès',
-  TESTIMONIAL_NOT_FOUND: 'Témoignage non trouvé',
-  TESTIMONIALS_FETCHED: 'Témoignages récupérés avec succès',
-  UNAUTHORIZED: 'Non autorisé',
+  TESTIMONIAL_CREATED: 'Merci pour votre témoignage ! Il sera publié après validation par notre équipe.',
+  TESTIMONIAL_UPDATED: 'Témoignage mis à jour avec succès.',
+  TESTIMONIAL_DELETED: 'Témoignage supprimé définitivement.',
+  TESTIMONIAL_NOT_FOUND: 'Ce témoignage n\'existe pas ou a été supprimé.',
+  TESTIMONIALS_FETCHED: 'Témoignages récupérés avec succès.',
+  UNAUTHORIZED: 'Accès non autorisé. Veuillez vous connecter.',
 };
 
 const LOG_MESSAGES = {

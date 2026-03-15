@@ -6,17 +6,17 @@ const { logger } = require('../log/logger');
 const mongoose = require('mongoose');
 
 const MESSAGES = {
-  TOKEN_MISSING: 'Non autorisé : Token manquant.',
-  TOKEN_INVALID: 'Non autorisé : Token invalide. Détail:',
-  USER_ID_MISSING: 'Non autorisé : ID utilisateur manquant dans le token.',
-  FORMATION_ID_REQUIRED: 'L\'ID de la formation est requis.',
-  FORMATION_ID_INVALID: 'L\'ID de la formation est invalide.',
-  USER_NOT_FOUND: 'Utilisateur non trouvé.',
-  ALREADY_ENROLLED: 'Vous êtes déjà inscrit à cette formation.',
-  FORMATION_NOT_FOUND: 'Formation non trouvée.',
-  NO_SEATS_AVAILABLE: 'Plus de places disponibles pour cette formation.',
-  ENROLLMENT_SUCCESS: (title) => `Vous avez été enrôlé à la formation "${title}".`,
-  UNEXPECTED_ERROR: 'Erreur inattendue lors de l\'enrôlement:'
+  TOKEN_MISSING: 'Authentification requise. Veuillez vous connecter pour vous inscrire à cette formation.',
+  TOKEN_INVALID: 'Session expirée ou invalide. Veuillez vous reconnecter. Détail:',
+  USER_ID_MISSING: 'Session incomplète. Veuillez vous reconnecter pour continuer votre inscription.',
+  FORMATION_ID_REQUIRED: 'Veuillez sélectionner une formation pour poursuivre votre inscription.',
+  FORMATION_ID_INVALID: 'La formation sélectionnée est invalide. Veuillez réessayer depuis la page des formations.',
+  USER_NOT_FOUND: 'Compte utilisateur introuvable. Veuillez créer un compte ou contacter notre support.',
+  ALREADY_ENROLLED: 'Bonne nouvelle ! Vous êtes déjà inscrit à cette formation. Consultez votre espace personnel pour les détails.',
+  FORMATION_NOT_FOUND: 'Cette formation n\'est plus disponible. Découvrez nos autres formations certifiantes.',
+  NO_SEATS_AVAILABLE: 'Cette session est complète ! Inscrivez-vous sur liste d\'attente pour être prioritaire sur la prochaine session.',
+  ENROLLMENT_SUCCESS: (title) => `Félicitations ! Votre inscription à la formation "${title}" est confirmée. Vous recevrez un email de confirmation avec tous les détails pratiques.`,
+  UNEXPECTED_ERROR: 'Erreur inattendue lors de l\'inscription:'
 };
 
 const LOG_MESSAGES = {

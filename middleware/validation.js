@@ -3,14 +3,14 @@ const mongoose = require('mongoose');
 
 // Constants for common validation messages
 const VALIDATION_MESSAGES = {
-  REQUIRED: (field) => `Le ${field} est requis`,
-  INVALID_EMAIL: `L'email doit être valide`,
-  MIN_LENGTH: (field, length) => `Le ${field} doit contenir au moins ${length} caractères`,
-  POSITIVE_NUMBER: (field) => `Le ${field} doit être un nombre positif`,
-  INVALID_DATE_FORMAT: `La date doit être un format valide (AAAA-MM-JJ)`,
-  MIN_SEATS: `Le nombre de places doit être au moins 1`,
-  INVALID_LEVEL: `Le niveau doit être Débutant, Intermédiaire ou Avancé`,
-  INVALID_FORMATION_ID: `L'ID de la formation est invalide`,
+  REQUIRED: (field) => `Le champ "${field}" est obligatoire. Veuillez le renseigner pour continuer.`,
+  INVALID_EMAIL: `Veuillez saisir une adresse email valide (ex: votre.nom@domaine.com).`,
+  MIN_LENGTH: (field, length) => `Le ${field} doit contenir au moins ${length} caractères pour être valide.`,
+  POSITIVE_NUMBER: (field) => `Le ${field} doit être un nombre positif (supérieur ou égal à 0).`,
+  INVALID_DATE_FORMAT: `Format de date invalide. Veuillez utiliser le format AAAA-MM-JJ (ex: 2025-03-15).`,
+  MIN_SEATS: `Le nombre de places doit être d'au moins 1 participant.`,
+  INVALID_LEVEL: `Veuillez choisir un niveau parmi : Débutant, Intermédiaire ou Avancé.`,
+  INVALID_FORMATION_ID: `La formation sélectionnée est invalide. Veuillez réessayer depuis la page des formations.`,
 };
 
 // Common validation middleware to check for errors
