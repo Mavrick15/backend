@@ -116,7 +116,7 @@ paymentSchema.statics.getProviderDisplayName = function(provider) {
 
 paymentSchema.statics.getProviderInstructions = function(provider, phoneNumber, amount, transactionReference) {
   const instructions = {
-    mpesa: `Pour payer via M-Pesa :\n1. Composez *151*1*1# sur votre téléphone Vodacom\n2. Sélectionnez "Payer une facture"\n3. Entrez le numéro marchand : 123456\n4. Entrez le montant : ${amount} USD\n5. Entrez la référence : ${transactionReference}\n6. Confirmez avec votre code PIN M-Pesa`,
+    mpesa: `Pour payer via M-Pesa :\n1. Composez *151*1*1# sur votre téléphone Vodacom\n2. Sélectionnez "Payer une facture"\n3. Entrez le numéro marchand : 0812 583 947\n4. Entrez le montant : ${amount} USD\n5. Entrez la référence : ${transactionReference}\n6. Confirmez avec votre code PIN M-Pesa`,
     orange_money: `Pour payer via Orange Money :\n1. Composez #144# sur votre téléphone Orange\n2. Sélectionnez "Payer une facture"\n3. Entrez le numéro marchand : 0899000001\n4. Entrez le montant : ${amount} USD\n5. Entrez la référence : ${transactionReference}\n6. Confirmez avec votre code PIN Orange Money`,
     airtel_money: `Pour payer via Airtel Money :\n1. Composez *501# sur votre téléphone Airtel\n2. Sélectionnez "Payer"\n3. Entrez le numéro marchand : 0997000001\n4. Entrez le montant : ${amount} USD\n5. Entrez la référence : ${transactionReference}\n6. Confirmez avec votre code PIN Airtel Money`,
     africell_money: `Pour payer via Africell Money :\n1. Composez *111# sur votre téléphone Africell\n2. Sélectionnez "Paiement"\n3. Entrez le numéro marchand : 0901000001\n4. Entrez le montant : ${amount} USD\n5. Entrez la référence : ${transactionReference}\n6. Confirmez avec votre code PIN Africell Money`,
