@@ -13,7 +13,7 @@ const MESSAGES = {
   INVOICE_ALREADY_PAID: 'Cette facture a déjà été payée.',
   INVOICE_CANCELLED: 'Cette facture a été annulée et ne peut plus être payée.',
   INVALID_PROVIDER: 'Fournisseur Mobile Money invalide. Choisissez parmi : M-Pesa, Orange Money, Airtel Money ou Africell Money.',
-  INVALID_PHONE: 'Numéro de téléphone Mobile Money invalide.',
+  INVALID_PHONE: 'Le numéro de téléphone n\'est pas valide. Format : +243 XXX XXX XXX',
   INVALID_INVOICE_ID: 'ID de facture invalide.',
   INVALID_PAYMENT_ID: 'ID de paiement invalide.',
   PAYMENT_INITIATED: 'Paiement Mobile Money initié avec succès. Suivez les instructions pour compléter le paiement.',
@@ -82,7 +82,8 @@ const initiatePayment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: MESSAGES.INVALID_PROVIDER });
     }
 
-    if (!phoneNumber || phoneNumber.trim().length < 9) {
+    const phoneRegex = /^\+243\s?\d{3}\s?\d{3}\s?\d{3}$/;
+    if (!phoneNumber || !phoneRegex.test(phoneNumber.trim())) {
       return res.status(400).json({ success: false, message: MESSAGES.INVALID_PHONE });
     }
 

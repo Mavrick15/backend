@@ -34,6 +34,12 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     required: [true, PAYMENT_MESSAGES.REQUIRED],
     trim: true,
+    validate: {
+      validator: function(v) {
+        return /^\+243\s?\d{3}\s?\d{3}\s?\d{3}$/.test(v);
+      },
+      message: PAYMENT_MESSAGES.INVALID_PHONE,
+    },
   },
   amount: {
     type: Number,
