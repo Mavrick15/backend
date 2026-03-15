@@ -2,18 +2,18 @@ const nodemailer = require("nodemailer");
 const { logger } = require("../log/logger");
 
 const EMAIL_MESSAGES = {
-  SMTP_ERROR: "Erreur de connexion SMTP :",
-  SMTP_READY: "Serveur SMTP prêt à prendre des messages",
+  SMTP_ERROR: "Service temporairement indisponible - Notre équipe technique intervient immédiatement",
+  SMTP_READY: "Service de messagerie opérationnel - Prêt à traiter vos demandes",
   ADMIN_NOTIFICATION_SUBJECT: (subject, name) =>
-    `[Nouvelle Demande Client] ${subject} - ${name}`,
+    `[Demande Prioritaire Client] ${subject} - ${name}`,
   ADMIN_NOTIFICATION_INFO: (email) =>
-    `Notification admin envoyée pour ${email}`,
+    `Notification prioritaire transmise à l'équipe pour ${email}`,
   ADMIN_NOTIFICATION_ERROR: (email) =>
-    `Erreur lors de l'envoi de l'e-mail de notification à l'admin pour ${email}:`,
-  CLIENT_CONFIRMATION_SUBJECT: "Votre demande a été reçue - Zetoun Labs",
-  CLIENT_CONFIRMATION_INFO: (email) => `Confirmation client envoyée à ${email}`,
+    `Alerte système - Notification prioritaire en cours pour ${email}:`,
+  CLIENT_CONFIRMATION_SUBJECT: "Votre demande est prioritaire - Zetoun Labs vous contacte",
+  CLIENT_CONFIRMATION_INFO: (email) => `Confirmation prioritaire envoyée à ${email}`,
   CLIENT_CONFIRMATION_ERROR: (email) =>
-    `Erreur lors de l'envoi de l'e-mail de confirmation au client ${email}:`,
+    `Alerte système - Confirmation en cours de traitement pour ${email}:`,
 };
 
 /** Échappe les caractères HTML pour affichage sécurisé dans les e-mails */
